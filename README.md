@@ -1,4 +1,4 @@
- Kakuro Application
+#### Kakuro Application
 
 A modern, feature-rich implementation of the classic Japanese number puzzle game Kakuro, built with Swift and SwiftUI.
 
@@ -152,7 +152,7 @@ This project aims to create more than just a functional puzzle game. The goal is
 
  👥 Authors
 
-Evelyne Mukarukundo
-Shaquille Osborne Neil
-Hope Jeanine Ukundimana
+Evelyne Mukarukundo,
+Shaquille Osborne Neil,
+Hope Jeanine Ukundimana.
 
