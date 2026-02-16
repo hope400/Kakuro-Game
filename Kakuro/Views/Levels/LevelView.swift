@@ -56,7 +56,7 @@ struct LevelView: View {
             }
             .padding()
 
-            // ✅ COMPLETION POPUP
+           
             if showCompletionSheet {
                 CompletionView {
                     showCompletionSheet = false

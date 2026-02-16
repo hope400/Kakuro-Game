@@ -182,33 +182,43 @@ struct LoginView: View {
             .padding()
         }
     }
+  
 
-    // MARK: - Sign Up Validation
-    // Checks user input before attempting to create an account.
-    // Prevents unnecessary network calls if something is clearly wrong.
+    // MARK: - Validation
+
+
+    // Runs when the user presses Sign Up.
+    // This checks obvious mistakes locally first so we don't call Firebase
+    // when the input is clearly invalid (empty fields, mismatched passwords, etc).
+    // It keeps the app responsive and avoids unnecessary network requests.
     func validateSignup(username: String,
                         email: String,
                         password: String,
                         confirmPassword: String)
     {
         
+        // Basic safety check — all fields must be filled in
         if username.isEmpty || email.isEmpty || password.isEmpty || confirmPassword.isEmpty {
             errorMessage = "Please fill in all fields."
             return
         }
 
+        // Prevent account creation if passwords don't match
         if password != confirmPassword {
             errorMessage = "Passwords do not match."
             return
         }
 
+        // Simple format validation before sending to backend
         if !isValidEmail(email) {
             errorMessage = "Please enter a valid email."
             return
         }
 
+        // Clear previous errors before attempting signup
         errorMessage = ""
 
+        // Async call to Firebase to actually create the account
         Task {
             do {
                 try await firebaseManager.signUp(
@@ -217,54 +227,70 @@ struct LoginView: View {
                     username: username
                 )
             } catch {
+                // UI updates must happen on the main thread
                 await MainActor.run {
                     self.errorMessage = error.localizedDescription
                 }
             }
         }
     }
-    
+
+
+    // Checks password match while the user is typing.
+    // Used for live feedback instead of waiting until submit.
     private func comparePasswords() {
-    
+
         passwordsMatch = (password == confirmPassword)
+
+        // Only show error if they don't match
         errorMessage = !passwordsMatch ? "Passwords do not match." : ""
     }
-    
+
+
+    // Very simple password strength indicator.
+    // This is not security enforcement — just feedback to guide the user.
     private func checkPasswordStrength(_ password: String) {
 
+        // No message if nothing entered yet
         if password.isEmpty {
             passwordStrength = ""
             return
         }
 
+        // Minimum length feedback
         if password.count < 6 {
             passwordStrength = "Too short"
             return
         }
 
+        // Basic check for at least one number
         if password.range(of: "[0-9]", options: .regularExpression) != nil {
             passwordStrength = "Good password"
         } else {
             passwordStrength = "Add a number"
         }
     }
-    
+
+
+    // Checks if a username already exists while the user is typing.
+    // Uses a delay so we don't call Firebase on every keystroke.
     private func validateUsernameLive(_ username: String) {
 
-        // cancel previous check if user keeps typing
+        // Cancel the previous request if the user keeps typing
         usernameCheckTask?.cancel()
 
-        // do not check empty usernames
+        // Do not check empty input
         guard !username.isEmpty else {
             errorMessage = ""
             return
         }
 
         usernameCheckTask = Task {
-            // wait before checking (user finished typing)
+
+            // Small delay to wait until typing pauses
             try? await Task.sleep(nanoseconds: 600_000_000)
 
-            // if cancelled, stop here
+            // Stop if a newer task replaced this one
             if Task.isCancelled { return }
 
             do {
@@ -278,13 +304,14 @@ struct LoginView: View {
                     }
                 }
             } catch {
-                // silently ignore or show generic error
+                // Failure here is non-critical, so we ignore silently
             }
         }
     }
 
-    // MARK: - Login Validation
-    // Ensures fields are filled before attempting login.
+
+    // Runs when the user presses Login.
+    // Only checks that fields exist before calling Firebase.
     func validateLogin(email: String, password: String) {
 
         if email.isEmpty || password.isEmpty {
@@ -304,32 +331,34 @@ struct LoginView: View {
             }
         }
     }
-    
-    // Validates email while the user is typing.
-    // Shows an error only when the format is clearly invalid.
+
+
+    // Live email validation while typing.
+    // Avoids showing errors too early so the UI doesn't feel aggressive.
     private func validateEmailLive(_ email: String) {
 
-        // Do not show errors for empty input
+        // No error for empty input
         if email.isEmpty {
             errorMessage = ""
             return
         }
 
-        // Avoid showing errors too early while typing
+        // Only show error once email structure starts forming
         if email.contains("@") && !isValidEmail(email) {
             errorMessage = "Invalid email format"
         } else {
             errorMessage = ""
         }
     }
-    
 
-    // MARK: - Email Validation
-    // Simple format check to catch obvious mistakes.
+
+    // Simple regex-based email validation.
+    // This only checks format, not whether the email actually exists.
     private func isValidEmail(_ email: String) -> Bool {
         let pattern = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}"
         return email.range(of: pattern, options: .regularExpression) != nil
     }
+
 }
 
 
