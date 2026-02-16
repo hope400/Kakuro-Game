@@ -8,6 +8,8 @@
 import Foundation
 import FirebaseAuth
 import Combine
+import FirebaseFirestore
+
 
 
 // FirebaseManager is responsible for handling authentication.
@@ -21,6 +23,8 @@ import Combine
 // The rest of the app watches this object to know
 // whether a user is logged in or not.
 class FirebaseManager: ObservableObject {
+    
+    private let db = Firestore.firestore()
     
     // A single shared instance used across the entire app.
     // This avoids creating multiple authentication managers.
@@ -49,23 +53,24 @@ class FirebaseManager: ObservableObject {
     //
     // If something fails:
     // - we print the error for debugging
-    func signUp(email: String, password: String) {
-        Auth.auth().createUser(withEmail: email, password: password) { result, error in
+    func signUp(email: String, password: String, username: String) async throws {
 
-            // If Firebase returns an error, stop here.
-            if let error = error {
-                print("Error creating user: \(error.localizedDescription)")
-                return
-            }
+        // Create the authentication account
+        let result = try await Auth.auth()
+            .createUser(withEmail: email, password: password)
 
-            // Make sure we actually received a user back.
-            guard let user = result?.user else { return }
+        let user = result.user
+        let uid = user.uid
 
-            // Update the app on the main thread.
-            // This tells the UI that a user is now logged in.
-            DispatchQueue.main.async {
-                self.user = user
-            }
+        // Create the user document in Firestore
+        try await db.collection("users").document(uid).setData([
+            "email": email,
+            "username": username
+        ])
+
+        // Update app state on the main thread
+        await MainActor.run {
+            self.user = user
         }
     }
     
@@ -88,6 +93,17 @@ class FirebaseManager: ObservableObject {
             self.user = result.user
         }
     }
+    
+    
+    func usernameExists(_ username: String) async throws -> Bool {
+        let snapshot = try await Firestore.firestore()
+            .collection("users")
+            .whereField("username", isEqualTo: username)
+            .getDocuments()
+
+        return !snapshot.documents.isEmpty
+    }
+    
     
     
     // MARK: - Sign Out

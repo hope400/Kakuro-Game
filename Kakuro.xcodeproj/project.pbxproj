@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		541B9B852F427D2A00273FF2 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 541B9B842F427D2A00273FF2 /* GoogleService-Info.plist */; };
 		541B9B892F427D7C00273FF2 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 541B9B882F427D7C00273FF2 /* FirebaseAuth */; };
+		541B9C052F42B60700273FF2 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 541B9C042F42B60700273FF2 /* FirebaseFirestore */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -30,6 +31,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				541B9B892F427D7C00273FF2 /* FirebaseAuth in Frameworks */,
+				541B9C052F42B60700273FF2 /* FirebaseFirestore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -82,6 +84,7 @@
 			name = Kakuro;
 			packageProductDependencies = (
 				541B9B882F427D7C00273FF2 /* FirebaseAuth */,
+				541B9C042F42B60700273FF2 /* FirebaseFirestore */,
 			);
 			productName = Kakuro;
 			productReference = 543AA1A62F2BBE6F0003E1BD /* Kakuro.app */;
@@ -370,6 +373,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 541B9B862F427D6D00273FF2 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseAuth;
+		};
+		541B9C042F42B60700273FF2 /* FirebaseFirestore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 541B9B862F427D6D00273FF2 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseFirestore;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
