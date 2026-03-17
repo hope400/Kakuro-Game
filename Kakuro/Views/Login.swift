@@ -49,6 +49,8 @@ struct LoginView: View {
     @State private var usernameCheckTask: Task<Void, Never>?
     @State private var passwordStrength: String = ""
     @State private var passwordsMatch = true
+    
+    @EnvironmentObject var gameTracker: GameSession
 
     var body: some View {
         NavigationStack {
@@ -161,7 +163,9 @@ struct LoginView: View {
                 // MARK: - Guest Access
                 // Allows entering the game without creating an account
                 Button {
+                    gameTracker.setGuestMode(true)
                     asGuest.toggle()
+                    
                 } label: {
                     Text("Play as guest")
                         .font(.footnote)
@@ -324,6 +328,10 @@ struct LoginView: View {
         Task {
             do {
                 try await firebaseManager.signIn(email: email, password: password)
+                
+                await MainActor.run {
+                    gameTracker.setGuestMode(false)
+                }
             } catch {
                 await MainActor.run {
                     errorMessage = "Email or password is incorrect."

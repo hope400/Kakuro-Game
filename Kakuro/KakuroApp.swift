@@ -21,21 +21,19 @@ class AppDelegate: NSObject, UIApplicationDelegate {
 @main
 struct KakuroApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
-    @StateObject private var gameTracker = GameTracker()
     @StateObject private var firebaseManager: FirebaseManager = .shared
+    @StateObject private var gameTracker = GameSession()
     
-    init() {
-        KakuroTemplates.debugValidateAll()   // optional
-//       TemplateAutoMaker.makeAllSets()
-//        HardTemplateAutoMaker.makeHardSets()
 
-       }
 
     var body: some Scene {
         WindowGroup {
             RootView()
-                .environmentObject(gameTracker)
                 .environmentObject(firebaseManager)
+                .environmentObject(gameTracker)
+                .onAppear {
+                    gameTracker.firebaseManager = firebaseManager
+                }
         }
     }
 }
@@ -46,10 +44,15 @@ struct RootView: View {
     @EnvironmentObject var firebaseManager: FirebaseManager
 
     var body: some View {
-        if firebaseManager.user == nil {
-            LoginView()
-        } else {
-            KakuroMainMenu()
+        Group {
+            if firebaseManager.user == nil {
+                LoginView()
+            } else {
+                KakuroMainMenu()
+            }
         }
+//        .task {
+//            firebaseManager.uploadAllTemplates()
+//        }
     }
 }

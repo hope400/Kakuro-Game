@@ -9,86 +9,83 @@ import SwiftUI
 
 struct DifficultyMenu: View {
     @State private var isPulsing: Bool = false
-    @EnvironmentObject var gameTracker: GameTracker
+    @EnvironmentObject var gameTracker: GameSession
+    @State private var showAccessAlert = false
+    @State private var navigateToHard = false
+    
+    
+    
     var body: some View {
         NavigationStack {
+
             ZStack{
                 RoundedRectangle(cornerRadius: 15)
                     .foregroundStyle(.ultraThinMaterial)
                     .frame(height: 600)
-                
-                
-                VStack{
-                    
-                    Spacer()
-                        .frame(height: 100)
+
+                VStack {
+
+                    Spacer().frame(height: 100)
+
                     Text("Choose a difficulty")
                         .font(.largeTitle)
                         .bold()
-                    
-                    Spacer()
-                        .frame(height: 100)
-                    
+
+                    Spacer().frame(height: 100)
+
                     NavigationLink(destination: EasyLevels()) {
                         PulsingMenuButton(title: "Easy", isPulsing: isPulsing)
-                        
-                        
-                        
-                        
-                    }.simultaneousGesture(
+                    }
+                    .simultaneousGesture(
                         TapGesture().onEnded {
                             gameTracker.setDifficulty(.easy)
-
                         }
                     )
                     .buttonStyle(.plain)
-                    
-                    
-                    
-                    NavigationLink(destination: Mediumlevels())
-                    {
+
+                    NavigationLink(destination: Mediumlevels()) {
                         PulsingMenuButton(title: "Medium", isPulsing: isPulsing)
-                    }.simultaneousGesture(
+                    }
+                    .simultaneousGesture(
                         TapGesture().onEnded {
                             gameTracker.setDifficulty(.medium)
-
                         }
                     )
                     .buttonStyle(.plain)
-                    
-                    
-                    
-                    
-                    NavigationLink(destination: HardLevels())
-                    {
+
+                    Button {
+                        let allowed = gameTracker.selectDifficulty(.hard)
+
+                        if allowed {
+                            navigateToHard = true
+                        } else {
+                            showAccessAlert = true
+                        }
+
+                    } label: {
                         PulsingMenuButton(title: "Hard", isPulsing: isPulsing)
-                    }.simultaneousGesture(
-                        TapGesture().onEnded {
-                            gameTracker.setDifficulty(.hard)
-
-                        }
-                    )
+                    }
                     .buttonStyle(.plain)
-                    
-                    
-                    
-                    
-                    
+                    .alert("Login required", isPresented: $showAccessAlert) {
+                        Button("OK", role: .cancel) {}
+                    } message: {
+                        Text("Hard difficulty requires a logged in account.")
+                    }
+
                     Spacer()
-                    
-                    
-                } .onAppear {
+                }
+                .onAppear {
                     if !isPulsing {
-                           isPulsing = true
-                       }
+                        isPulsing = true
+                    }
+                }
             }
-                
-                
-            }//END OF ZSTACK
-            
-           
-            
-        }.padding() //end of NavigationStack
+
+        }
+        .navigationDestination(isPresented: $navigateToHard) {
+            HardLevels()
+        }
+        .padding() //end of NavigationStack
     }
 }
 

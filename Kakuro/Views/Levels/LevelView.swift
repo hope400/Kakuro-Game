@@ -6,18 +6,21 @@
 //
 
 import SwiftUI
+import FirebaseFirestore
+import Combine
 
 struct LevelView: View {
-    @EnvironmentObject var gameTracker: GameTracker
+    @EnvironmentObject var gameTracker: GameSession
     @State private var showCompletionSheet = false
-
+    @EnvironmentObject var firebaseManager: FirebaseManager
+    @Environment(\.dismiss) var dismiss
 
     var body: some View {
         ZStack {
 
             GeometryReader { geo in
-                let rows = gameTracker.grid.count
-                let cols = gameTracker.grid.first?.count ?? 1
+                let rows = gameTracker.puzzle.grid.count
+                let cols = gameTracker.puzzle.grid.first?.count ?? 1
 
                 let cellSize = min(
                     geo.size.width / CGFloat(cols),
@@ -25,9 +28,14 @@ struct LevelView: View {
                 )
 
                 VStack(spacing: 0) {
-                    ForEach(0..<gameTracker.grid.count, id: \.self) { row in
+
+                    GameTimerView()
+
+                    Spacer()
+
+                    ForEach(0..<gameTracker.puzzle.grid.count, id: \.self) { row in
                         HStack(spacing: 0) {
-                            ForEach(gameTracker.grid[row]) { cell in
+                            ForEach(gameTracker.puzzle.grid[row]) { cell in
                                 CellView(cell: cell)
                                     .id(cell.id)
                                     .frame(width: cellSize, height: cellSize)
@@ -44,7 +52,7 @@ struct LevelView: View {
                         SpecialButtons()
                     }
                 }
-                .id(gameTracker.progress.count)
+                .id(gameTracker.puzzle.progress.count)
                 .frame(
                     width: cellSize * CGFloat(cols),
                     height: cellSize * CGFloat(rows)
@@ -56,12 +64,29 @@ struct LevelView: View {
             }
             .padding()
 
-           
             if showCompletionSheet {
                 CompletionView {
                     showCompletionSheet = false
+                    dismiss()
                 }
                 .transition(.scale)
+            }
+        }
+        .onDisappear { gameTracker.pauseTimer() }
+        .onAppear {
+
+            if !gameTracker.loadGame() {
+                gameTracker.generatePuzzle()
+            }
+
+            if gameTracker.startTime == nil {
+                gameTracker.startTimer()
+            } else {
+                gameTracker.resumeTimer()
+            }
+
+            if gameTracker.isCompleted {
+                showCompletionSheet = true
             }
         }
         .onChange(of: gameTracker.isCompleted) { completed in
@@ -71,8 +96,12 @@ struct LevelView: View {
         }
     }
 
+    func formatTime(_ time: TimeInterval) -> String {
+        let minutes = Int(time) / 60
+        let seconds = Int(time) % 60
+        return String(format: "%02d:%02d", minutes, seconds)
+    }
 }
-
 
 struct CompletionView: View {
 
@@ -80,7 +109,6 @@ struct CompletionView: View {
 
     var body: some View {
         ZStack {
-            // Dimmed background
             Color.black.opacity(0.35)
                 .ignoresSafeArea()
 
@@ -107,10 +135,7 @@ struct CompletionView: View {
     }
 }
 
-
-
-
 #Preview {
     LevelView()
-        .environmentObject(GameTracker())
+        .environmentObject(GameSession())
 }

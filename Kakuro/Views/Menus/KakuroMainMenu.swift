@@ -10,6 +10,7 @@ import SwiftUI
 struct KakuroMainMenu: View {
     @State private var isPulsing: Bool = false
     @EnvironmentObject var firebaseManager: FirebaseManager
+    @EnvironmentObject var gameTracker: GameSession
     
     var body: some View {
         NavigationStack {
@@ -45,10 +46,15 @@ struct KakuroMainMenu: View {
                     
                     
                     
-                    NavigationLink(destination: MyStats())
-                    {
-                        PulsingMenuButton(title: "My Stats", isPulsing: isPulsing)
-                    }.buttonStyle(.plain)
+                    if gameTracker.isGuestMode {
+                        PulsingMenuButton(title: "My Stats (Login required)", isPulsing: isPulsing)
+                            .opacity(0.5)
+                    } else {
+                        NavigationLink(destination: MyStats()) {
+                            PulsingMenuButton(title: "My Stats", isPulsing: isPulsing)
+                        }
+                        .buttonStyle(.plain)
+                    }
                        
                     
                     
@@ -61,20 +67,23 @@ struct KakuroMainMenu: View {
                     
                     Spacer()
                     
-                    //logout button
-//                    Button {
-//                        firebaseManager.signOut()
-//                    } label: {
-//                        Text("Logout")
-//                            .foregroundStyle(.white)
-//                            .font(Font.caption.bold())
-//                            .padding()
-//                            .background{
-//                                RoundedRectangle(cornerRadius: 15)
-//                                    .foregroundStyle(.red)
-//                            }
-//                            
-//                    }
+                    
+                    
+                    if !gameTracker.isGuestMode {
+                        Button {
+                            firebaseManager.signOut()
+                            gameTracker.setGuestMode(true)
+                        } label: {
+                            Text("Logout")
+                                .foregroundStyle(.white)
+                                .font(.caption.bold())
+                                .padding()
+                                .background {
+                                    RoundedRectangle(cornerRadius: 15)
+                                        .foregroundStyle(.red)
+                                }
+                        }
+                    }
                     
                     
                 }
@@ -86,7 +95,7 @@ struct KakuroMainMenu: View {
                 
                 
             }
-            .navigationBarBackButtonHidden(true)
+           
             //END OF ZSTACK
            
             
