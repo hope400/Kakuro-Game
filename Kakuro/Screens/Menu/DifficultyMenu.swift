@@ -43,7 +43,7 @@ struct DifficultyMenu: View {
                     )
                     .buttonStyle(.plain)
 
-                    NavigationLink(destination: Mediumlevels()) {
+                    NavigationLink(destination: MediumLevels()) {
                         PulsingMenuButton(title: "Medium", isPulsing: isPulsing)
                     }
                     .simultaneousGesture(

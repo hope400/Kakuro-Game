@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct Mediumlevels: View {
+struct MediumLevels: View {
 
     private let levelNumbers = Array(1...10)
 
@@ -106,6 +106,6 @@ struct Mediumlevels: View {
 }
 
 #Preview {
-    Mediumlevels()
+    MediumLevels()
         .environmentObject(GameSession())
 }
